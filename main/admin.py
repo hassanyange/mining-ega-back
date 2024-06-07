@@ -5,3 +5,4 @@ from .models import *
 admin.site.register(License)
 admin.site.register(Statistic)
 admin.site.register(Service)
+admin.site.register(Contact)
