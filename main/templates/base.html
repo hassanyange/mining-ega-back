@@ -99,18 +99,13 @@
                 <a href="{% url 'feature' %}" class="dropdown-item">Feature</a>
                 <a href="{% url 'team' %}" class="dropdown-item">Our Team</a>
                 <a href="{% url 'appointment' %}" class="dropdown-item">Cadastre portal</a>
-                <!-- Check if user is authenticated, if yes, display application link -->
-                {% if user.is_authenticated %}
-                    <a href="{% url 'application' %}" class="dropdown-item">Application</a>
-                {% endif %}
+                    <a href="{% url 'login' %}" class="dropdown-item">Application</a>
+               
                 <a href="{% url 'statistics' %}" class="dropdown-item">Statistics</a>
             </div>
         </div>
         <a href="{% url 'contact' %}" class="nav-item nav-link">Contact</a>
-        <!-- Check if user is authenticated, if not, display login link -->
-        {% if not user.is_authenticated %}
-            <a href="{% url 'login' %}" class="nav-item nav-link">Login</a>
-        {% endif %}
+        
     </div>
     <a href="{% url 'appointment' %}" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
 </div>

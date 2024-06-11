@@ -7,7 +7,12 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
+from django.conf import settings
+from rest_framework.authtoken.models import Token  
 from .models import Coordinate, Token, Application
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import AuthenticationForm
+from .forms import CustomUserCreationForm, CustomAuthenticationForm
 import random
 import string
 
@@ -57,31 +62,37 @@ def appointment_success(request):
     return render(request, 'appointment_success.html')
 
 
-def login(request):
+
+
+def register(request):
     if request.method == 'POST':
-        form = AuthenticationForm(request, request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            auth_login(request, form.get_user())
-            return redirect('application')
+            form.save()
+            return redirect('login')  # Redirect to the login page
     else:
-        form = AuthenticationForm()
+        form = CustomUserCreationForm()
+    return render(request, 'register.html', {'form': form})
+
+
+def signin(request):
+    if request.method == 'POST':
+        form = CustomAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(request, username=email, password=password)
+            if user is not None:
+                auth_login(request, user)
+                return redirect('application')  # Redirect to the application page
+    else:
+        form = CustomAuthenticationForm()
     return render(request, 'login.html', {'form': form})
+
 
 def logout(request):
     auth_logout(request)
     return redirect('login')
-
-def register(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = UserCreationForm()
-    return render(request, 'register.html', {'form': form})
-
-from django.contrib.auth.decorators import login_required
 
 @login_required
 def application(request):
@@ -96,24 +107,32 @@ def check_coordinates(request):
             return JsonResponse({'available': False})
         else:
             return JsonResponse({'available': True})
+        
+
 
 @login_required
 def request_token(request):
     if request.method == 'POST':
         user = request.user
-        token_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-        token, created = Token.objects.get_or_create(user=user)
-        token.token = token_str
-        token.save()
+        try:
+            token = Token.objects.get(user=user)
+        except Token.DoesNotExist:
+            return JsonResponse({'error': 'Token does not exist for this user.'}, status=400)
 
+        user_email = user.email  # Access the user's email address
+        token_str = token.token  # Access the token value from your custom Token model
         send_mail(
             'Your Access Token',
             f'Your token is: {token_str}',
-            'hassanyange@gmail.com',
-            [user.email],
+            settings.DEFAULT_FROM_EMAIL,
+            [user_email],  # Use the user's email address as the recipient
             fail_silently=False,
         )
-        return JsonResponse({'token_requested': True})
+        return JsonResponse({'token_requested': True, 'message': 'Token has been sent to your email.'})
+    else:
+        return JsonResponse({'error': 'Invalid request method.'})
+
+
 
 @login_required
 def upload_pdf(request):
