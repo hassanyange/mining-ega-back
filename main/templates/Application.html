@@ -2,62 +2,144 @@
 {% load static %}
 {% block content %}
 
-    <!-- Page Header Start -->
-    <div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
-        <div class="container py-5">
-            <h1 class="display-3 text-black mb-3 animated slideInDown">Welcome to our body</h1>
-            <nav aria-label="breadcrumb animated slideInDown">
-                <ol class="breadcrumb text-uppercase mb-0">
-                    <li class="breadcrumb-item"><a class="text-white" href="#">Home</a></li>
-                    <li class="breadcrumb-item"><a class="text-white" href="#">Pages</a></li>
-                    <li class="breadcrumb-item text-primary active" aria-current="page">Change maker</li>
-                </ol>
-            </nav>
+<div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
+    <div class="container py-5">
+        <h1 class="display-3 text-black mb-3 animated slideInDown">Welcome to our body</h1>
+        <nav aria-label="breadcrumb animated slideInDown">
+            <ol class="breadcrumb text-uppercase mb-0">
+                <li class="breadcrumb-item"><a class="text-white" href="#">Home</a></li>
+                <li class="breadcrumb-item"><a class="text-white" href="#">Pages</a></li>
+                <li class="breadcrumb-item text-primary active" aria-current="page">Change maker</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container-xxl py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
+                    <p class="d-inline-block border rounded-pill py-1 px-4">Application</p>
+                    <h1>You wanna make Application with us .!</h1>
+                </div>
+
+                <div class="container mt-5">
+                    <h2>Check Coordinates</h2>
+                    <form id="check-coordinates-form" action="{% url 'check_coordinates' %}" method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="coordinates" class="form-label">Enter Coordinates:</label>
+                            <input type="text" class="form-control" id="coordinates" name="coordinates" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Check Availability</button>
+                    </form>
+                </div>
+
+                <div id="download-form-container" class="container mt-5" style="display: none;">
+                    <h2>Application Form</h2>
+                    <a href="https://www.tumemadini.go.tz/wp-content/uploads/Application-form-for-Primary-Mining-Licence-1-1.doc" class="btn btn-primary">Download Form</a>
+                </div>
+
+                <div id="request-token-container" class="container mt-5" style="display: none;">
+                    <h2>Request Token</h2>
+                    <form id="request-token-form" action="{% url 'request_token' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary" id="request-token-button">Request Token</button>
+                    </form>
+                </div>
+
+                <div id="upload-pdf-container" class="container mt-5" style="display: none;">
+                    <h2>Upload PDF</h2>
+                    <form id="upload-pdf-form" action="{% url 'upload_pdf' %}" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="coordinates" class="form-label">Coordinates:</label>
+                            <input type="text" class="form-control" id="coordinates" name="coordinates" required readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email:</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="token" class="form-label">Enter Token:</label>
+                            <input type="text" class="form-control" id="token" name="token" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pdfFile" class="form-label">Upload PDF:</label>
+                            <input type="file" class="form-control" id="pdfFile" name="pdfFile" accept="application/pdf" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>How to Submit Your Application</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Follow these steps to submit your application:</p>
+                        <ol>
+                            <li>Enter your coordinates and check if they are available.</li>
+                            <li>If available, download the application form.</li>
+                            <li>Fill out the application form and request a token to upload your filled form.</li>
+                            <li>Enter the token and upload your filled form.</li>
+                            <li>You will receive a notification once your application is reviewed and approved.</li>
+                        </ol>
+                        <p>If you have any questions, please contact our support team.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <!-- Page Header End -->
+</div>
 
+<script>
+    document.getElementById('check-coordinates-form').onsubmit = function(event) {
+        event.preventDefault();
+        var coordinates = document.getElementById('coordinates').value;
+        fetch("{% url 'check_coordinates' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: new URLSearchParams({ 'coordinates': coordinates })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.available) {
+                document.getElementById('download-form-container').style.display = 'block';
+                document.getElementById('request-token-container').style.display = 'block';
+                document.getElementById('upload-pdf-container').style.display = 'none';
+                document.getElementById('upload-pdf-form').coordinates.value = coordinates;
+            } else {
+                alert('Coordinates are already taken.');
+            }
+        });
+    };
 
-    <!-- Testimonial Start -->
-    <div class="container-xxl py-5">
-        <div class="container">
-            <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-                <p class="d-inline-block border rounded-pill py-1 px-4">Application</p>
-                <h1>You wanna make Application with us .!</h1>
-            </div>
-            <!-- Application Form Start -->
-            <div class="container mt-5">
-                <h2>Application</h2>
-                <form action="{% url 'submit' %}" method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="coordinates" class="form-label">Enter Coordinates:</label>
-                        <input type="text" class="form-control" id="coordinates" name="coordinates" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </form>
-            </div>
-            <!-- Application Form End -->
+    document.getElementById('request-token-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        fetch("{% url 'request_token' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.token_requested) {
+                alert('Token has been sent to your email.');
+                document.getElementById('upload-pdf-container').style.display = 'block';
+            } else {
+                alert('Failed to request token. Please try again.');
+            }
+        });
+    });
+</script>
 
-            <!-- Download Form Start -->
-            <div class="container mt-5">
-                <h2>Application 2</h2>
-                <a href="https://www.tumemadini.go.tz/wp-content/uploads/Application-form-for-Primary-Mining-Licence-1-1.doc" class="btn btn-primary">Download Form</a>
-            </div>
-            <!-- Download Form End -->
-
-            <!-- Upload PDF Form Start -->
-            <div class="container mt-5">
-                <h2>Upload PDF</h2>
-                <form action="{% url 'upload_pdf' %}" method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="pdfFile" class="form-label">Upload PDF:</label>
-                        <input type="file" class="form-control" id="pdfFile" name="pdfFile" accept="application/pdf" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Upload</button>
-                </form>
-            </div>
-            <!-- Upload PDF Form End -->
-        
-       {% endblock %}
+{% endblock %}
